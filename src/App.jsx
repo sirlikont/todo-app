@@ -1,35 +1,41 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useEffect, useState } from 'react';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [todos, setTodos] = useState([]);
+  const [input, setInput] = useState('');
+
+  const fetchTodos = async () => {
+    const res = await fetch('https://faas-fra1-afec6ce7.doserverless.co/api/v1/web/fn-80078344-8f61-4098-8142-97416f3bf844/default/listTodo');
+    const data = await res.json();
+    setTodos(data.todos);
+  };
+
+  const addTodo = async () => {
+    await fetch('https://faas-fra1-afec6ce7.doserverless.co/api/v1/web/fn-80078344-8f61-4098-8142-97416f3bf844/default/addTodo', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: input })
+    });
+    setInput('');
+    fetchTodos();
+  };
+
+  useEffect(() => {
+    fetchTodos();
+  }, []);
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <div>
+      <h1>Todo App</h1>
+      <input value={input} onChange={e => setInput(e.target.value)} />
+      <button onClick={addTodo}>Add</button>
+      <ul>
+        {todos.map(todo => (
+          <li key={todo._id}>{todo.text} {todo.done ? '✓' : ''}</li>
+        ))}
+      </ul>
+    </div>
+  );
 }
 
-export default App
+export default App;
